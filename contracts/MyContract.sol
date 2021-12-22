@@ -6,7 +6,7 @@ contract MyContract {
     mapping(string => bool) public claims;
     int256 public product;
 
-    receive() external payable {}
+    function donate() external payable {}
 
     constructor(int256 _product) {
         product = _product;
