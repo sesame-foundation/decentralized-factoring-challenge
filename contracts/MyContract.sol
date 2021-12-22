@@ -3,17 +3,24 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 contract MyContract {
-    string private name;
+    mapping(string => bool) public claims;
+    int256 public product;
 
-    constructor(string memory _name) {
-        name = _name;
+    receive() external payable {}
+
+    constructor(int256 _product) {
+        product = _product;
     }
 
-    function changeName(string memory _name) public {
-        name = _name;
+    function submitClaim(string memory _hash) public {
+        claims[_hash] = true;
     }
 
-    function getName() public view returns (string memory) {
-        return name;
+    function withdraw() public {
+        address payable claimant = payable(msg.sender);
+        (bool sent, bytes memory data) = claimant.call{
+            value: address(this).balance
+        }("");
+        require(sent, "Failed to send Ether");
     }
 }
