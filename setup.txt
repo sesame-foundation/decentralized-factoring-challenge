@@ -1,0 +1,10 @@
+FROM rust:latest
+RUN curl -fsSL https://deb.nodesource.com/setup_17.x | sudo -E bash -
+RUN sudo apt install -y nodejs
+RUN npm install --global yarn
+RUN sh -c "$(curl -sSfL https://release.solana.com/v1.9.1/install)"
+RUN apt-get install libudev-dev
+RUN apt-get install libclang-dev
+RUN echo PATH="/root/.local/share/solana/install/active_release/bin:$PATH" > ~/.b
+ash_rc
+ENV NODE_OPTIONS=--openssl-legacy-provider
