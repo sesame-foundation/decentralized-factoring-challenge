@@ -24,6 +24,7 @@
     "solidity-coverage": "^0.7.17"
   },
   "dependencies": {
+    "chai-as-promised": "^7.1.1",
     "web3": "^1.6.1"
   }
 }
