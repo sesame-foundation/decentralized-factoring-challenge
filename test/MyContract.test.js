@@ -18,19 +18,21 @@ function generateClaim(address, factor1, factor2) {
   return web3.utils.sha3(encoded, { encoding: "hex" });
 }
 
+async function getContract(product, withdrawlDelay) {
+  let MyContract = await ethers.getContractFactory("MyContract");
+  let myContract = await MyContract.deploy(product, withdrawlDelay);
+  await myContract.deployed();
+  return myContract;
+}
+
 describe("MyContract", () => {
   it("should have the specified product", async () => {
-    const MyContract = await ethers.getContractFactory("MyContract");
-    const myContract = await MyContract.deploy(product);
-
-    await myContract.deployed();
+    const myContract = await getContract(product, 0);
     expect(await myContract.product()).to.equal(product);
   });
   it("should keep track of submitted claims", async () => {
-    const MyContract = await ethers.getContractFactory("MyContract");
-    const myContract = await MyContract.deploy(product);
+    const myContract = await getContract(product, 0);
     const accounts = await hre.ethers.getSigners();
-    await myContract.deployed();
     let claim = generateClaim(accounts[0].address, factor1, factor2);
     await myContract.submitClaim(claim);
     let result = await myContract.claims(claim);
@@ -39,18 +41,14 @@ describe("MyContract", () => {
     expect((await myContract.claims(claim)).gt(0)).to.be.true;
   });
   it("should not yield unsubmitted claims", async () => {
-    const MyContract = await ethers.getContractFactory("MyContract");
-    const myContract = await MyContract.deploy(product);
+    const myContract = await getContract(product, 0);
     const accounts = await hre.ethers.getSigners();
-    await myContract.deployed();
     let claim = generateClaim(accounts[0].address, factor1, factor2);
     expect(await myContract.claims(claim)).to.equal(0);
   });
   it("should allow withdrawl of funds with a valid claim", async () => {
-    const MyContract = await ethers.getContractFactory("MyContract");
-    const myContract = await MyContract.deploy(product);
+    const myContract = await getContract(product, 0);
     const accounts = await hre.ethers.getSigners();
-    await myContract.deployed();
     let value = ethers.BigNumber.from(100);
     await myContract.donate({ value: value });
     await myContract.submitClaim(
@@ -66,10 +64,8 @@ describe("MyContract", () => {
     );
   });
   it("should not allow withdrawl of funds with an invalid claim", async () => {
-    const MyContract = await ethers.getContractFactory("MyContract");
-    const myContract = await MyContract.deploy(product);
+    const myContract = await getContract(product, 0);
     const accounts = await hre.ethers.getSigners();
-    await myContract.deployed();
     await myContract.submitClaim(
       generateClaim(accounts[0].address, factor1 + 1, factor2)
     );
@@ -80,10 +76,22 @@ describe("MyContract", () => {
     ).to.be.rejectedWith(Error);
   });
   it("should not allow withdrawl of funds without a claim", async () => {
-    const MyContract = await ethers.getContractFactory("MyContract");
-    const myContract = await MyContract.deploy(product);
+    const myContract = await getContract(product, 0);
     const accounts = await hre.ethers.getSigners();
-    await myContract.deployed();
+    await expect(
+      myContract.withdraw(factor1, factor2, {
+        from: accounts[0].address,
+      })
+    ).to.be.rejectedWith(Error);
+  });
+  it("should not allow withdrawl of funds before withdrawl delay", async () => {
+    const myContract = await getContract(product, 1000);
+    const accounts = await hre.ethers.getSigners();
+    let value = ethers.BigNumber.from(100);
+    await myContract.donate({ value: value });
+    await myContract.submitClaim(
+      generateClaim(accounts[0].address, factor1, factor2)
+    );
     await expect(
       myContract.withdraw(factor1, factor2, {
         from: accounts[0].address,
@@ -91,10 +99,7 @@ describe("MyContract", () => {
     ).to.be.rejectedWith(Error);
   });
   it("should accept donations", async () => {
-    const MyContract = await ethers.getContractFactory("MyContract");
-    const myContract = await MyContract.deploy(product);
-
-    await myContract.deployed();
+    const myContract = await getContract(product, 0);
     let value = 100;
     await myContract.donate({ value: value });
     expect(await provider.getBalance(myContract.address)).to.equal(value);
