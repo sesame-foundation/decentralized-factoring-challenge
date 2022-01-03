@@ -2,13 +2,17 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
+import "./BigNumber.sol";
+
 contract MyContract {
     mapping(bytes32 => uint256) public claims;
-    uint256 public product;
+    BigNumber.instance public product;
     uint256 public withdrawlDelay;
 
-    constructor(uint256 _product, uint256 _withdrawlDelay) {
-        product = _product;
+    constructor(bytes memory _product, uint256 _withdrawlDelay) {
+        product.val = _product;
+        product.bitlen = BigNumber.get_bit_length(_product);
+        product.neg = false;
         withdrawlDelay = _withdrawlDelay;
     }
 
@@ -18,8 +22,19 @@ contract MyContract {
         claims[_hash] = block.number;
     }
 
-    function withdraw(uint256 _factor1, uint256 _factor2) public {
+    function withdraw(bytes memory _factor1, bytes memory _factor2) public {
         address payable claimant = payable(msg.sender);
+
+        BigNumber.instance memory factor1;
+        factor1.val = _factor1;
+        factor1.bitlen = BigNumber.get_bit_length(_factor1);
+        factor1.neg = false;
+
+        BigNumber.instance memory factor2;
+        factor2.val = _factor2;
+        factor2.bitlen = BigNumber.get_bit_length(_factor2);
+        factor2.neg = false;
+
         bytes32 hash = keccak256(abi.encode(msg.sender, _factor1, _factor2));
         uint256 claimBlockNumber = claims[hash];
         require(claimBlockNumber > 0, "Claim not found");
@@ -27,7 +42,12 @@ contract MyContract {
             block.number - claimBlockNumber > withdrawlDelay,
             "Not enough blocks mined since claim was submitted"
         );
-        require(_factor1 * _factor2 == product, "Invalid factors");
+
+        require(
+            BigNumber.cmp(BigNumber.bn_mul(factor1, factor2), product, true) ==
+                0,
+            "Invalid factors"
+        );
 
         (bool sent, bytes memory data) = claimant.call{
             value: address(this).balance

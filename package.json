@@ -6,7 +6,7 @@
   "scripts": {
     "build": "hardhat compile",
     "test:light": "hardhat test",
-    "test": "hardhat coverage",
+    "test": "hardhat coverage --show-stack-traces",
     "deploy:local": "hardhat run --network localhost scripts/deployMyContract.js",
     "call:local": "node scripts/callMyContract.js",
     "local-testnet": "hardhat node"
@@ -24,6 +24,7 @@
     "solidity-coverage": "^0.7.17"
   },
   "dependencies": {
+    "bn.js": "^5.2.0",
     "chai-as-promised": "^7.1.1",
     "web3": "^1.6.1"
   }
