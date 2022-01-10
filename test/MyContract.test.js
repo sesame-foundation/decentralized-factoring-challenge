@@ -30,7 +30,7 @@ function generateClaim(address, factor1, factor2) {
   console.log("Generating claim");
   let encoded = web3.eth.abi.encodeParameters(
     ["address", "bytes", "bytes"],
-    [address, encodeInteger(factor1), encodeInteger(factor1)]
+    [address, encodeInteger(factor1), encodeInteger(factor2)]
   );
   return web3.utils.sha3(encoded, { encoding: "hex" });
 }
