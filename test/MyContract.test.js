@@ -1,7 +1,4 @@
 const chai = require("chai");
-const { waffles } = require("hardhat");
-const Web3 = require("web3");
-const web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
 chai.use(require("chai-as-promised"));
 var expect = chai.expect;
 const provider = waffle.provider;
@@ -22,20 +19,15 @@ function encodeInteger(integer) {
   );
 }
 
-function countBits(integer) {
-  return new bn(integer.toString(), 10).bitLength();
-}
-
 function generateClaim(address, factor1, factor2) {
-  console.log("Generating claim");
-  let encoded = web3.eth.abi.encodeParameters(
+  let encoded = ethers.utils.defaultAbiCoder.encode(
     ["address", "bytes", "bytes"],
     [address, encodeInteger(factor1), encodeInteger(factor2)]
   );
-  return web3.utils.sha3(encoded, { encoding: "hex" });
+  return ethers.utils.keccak256(encoded, { encoding: "hex" });
 }
+
 async function getContract(product, withdrawlDelay) {
-  console.log("Getting contract");
   let MyContract = await ethers.getContractFactory("MyContract");
   let myContract = await MyContract.deploy(
     encodeInteger(product),
@@ -76,7 +68,6 @@ describe("MyContract", () => {
     let startingBalance = ethers.BigNumber.from(
       await provider.getBalance(accounts[0].address)
     );
-    console.log("Attempting withdrawl");
     await myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2), {
       gasPrice: 0,
     });
@@ -92,7 +83,6 @@ describe("MyContract", () => {
       generateClaim(accounts[0].address, factor1 + 1, factor2)
     );
 
-    console.log("Attempting withdrawl");
     await expect(
       myContract.withdraw(encodeInteger(factor1 + 1), encodeInteger(factor2), {
         from: accounts[0].address,
@@ -103,7 +93,6 @@ describe("MyContract", () => {
     const myContract = await getContract(product, 0);
     const accounts = await hre.ethers.getSigners();
 
-    console.log("Attempting withdrawl");
     await expect(
       myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2), {
         from: accounts[0].address,
@@ -119,7 +108,6 @@ describe("MyContract", () => {
       generateClaim(accounts[0].address, factor1, factor2)
     );
 
-    console.log("Attempting withdrawl");
     await expect(
       myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2), {
         from: accounts[0].address,
