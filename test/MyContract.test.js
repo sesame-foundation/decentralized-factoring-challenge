@@ -3,21 +3,12 @@ chai.use(require("chai-as-promised"));
 var expect = chai.expect;
 const provider = waffle.provider;
 const bn = require("bn.js");
+const { encodeInteger } = require("../utils.js");
 
 const product = 15;
 const factor1 = 3;
 const factor2 = 5;
 
-function encodeInteger(integer) {
-  let value_hex = new bn(integer.toString(), 10).toString("hex");
-  return (
-    "0x" +
-    (value_hex.length % 64 != 0
-      ? "0".repeat(64 - (value_hex.length % 64))
-      : "") +
-    value_hex
-  );
-}
 
 function generateClaim(address, factor1, factor2) {
   let encoded = ethers.utils.defaultAbiCoder.encode(
