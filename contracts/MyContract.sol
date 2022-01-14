@@ -8,6 +8,7 @@ contract MyContract {
     mapping(bytes32 => uint256) public claims;
     BigNumber.instance public product;
     uint256 public withdrawlDelay;
+    event ChallengeSolved();
 
     constructor(bytes memory _product, uint256 _withdrawlDelay) {
         product.val = _product;
@@ -48,6 +49,8 @@ contract MyContract {
                 0,
             "Invalid factors"
         );
+
+        emit ChallengeSolved();
 
         (bool sent, bytes memory data) = claimant.call{
             value: address(this).balance

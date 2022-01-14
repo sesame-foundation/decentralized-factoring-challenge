@@ -9,7 +9,6 @@ const product = 15;
 const factor1 = 3;
 const factor2 = 5;
 
-
 function generateClaim(address, factor1, factor2) {
   let encoded = ethers.utils.defaultAbiCoder.encode(
     ["address", "bytes", "bytes"],
@@ -34,6 +33,23 @@ describe("MyContract", () => {
     expect(
       new bn((await myContract.product())[0].slice(2), 16).toNumber()
     ).to.equal(product);
+  });
+  it("should be labelled as unsolved", async () => {
+    const myContract = await getContract(product, 0);
+    let eventFilter = myContract.filters.ChallengeSolved();
+    expect((await myContract.queryFilter(eventFilter)).length).to.equal(0);
+  });
+  it("should be labelled as solved after withdrawl", async () => {
+    const myContract = await getContract(product, 0);
+    const accounts = await hre.ethers.getSigners();
+    await myContract.submitClaim(
+      generateClaim(accounts[0].address, factor1, factor2)
+    );
+    await myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2), {
+      gasPrice: 0,
+    });
+    let eventFilter = myContract.filters.ChallengeSolved();
+    expect((await myContract.queryFilter(eventFilter)).length).to.equal(1);
   });
   it("should keep track of submitted claims", async () => {
     const myContract = await getContract(product, 0);
