@@ -18,13 +18,17 @@ contract MyContract {
         withdrawlDelay = _withdrawlDelay;
     }
 
-    function donate() external payable {}
+    function donate() external payable {
+        require(winner == address(0), "Challenge has been solved");
+    }
 
     function submitClaim(bytes32 _hash) public {
+        require(winner == address(0), "Challenge has been solved");
         claims[_hash] = block.number;
     }
 
     function withdraw(bytes memory _factor1, bytes memory _factor2) public {
+        require(winner == address(0), "Challenge has been solved");
         address payable claimant = payable(msg.sender);
 
         BigNumber.instance memory factor1;
