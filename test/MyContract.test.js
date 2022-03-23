@@ -51,6 +51,15 @@ describe("MyContract", () => {
     let eventFilter = myContract.filters.ChallengeSolved();
     expect((await myContract.queryFilter(eventFilter)).length).to.equal(1);
   });
+  it("should have a winner after withdrawal", async () => {
+    const myContract = await getContract(product, 0);
+    const accounts = await hre.ethers.getSigners();
+    await myContract.submitClaim(
+      generateClaim(accounts[0].address, factor1, factor2)
+    );
+    await myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2));
+    expect(await myContract.winner()).to.equal(accounts[0].address);
+  });
   it("should keep track of submitted claims", async () => {
     const myContract = await getContract(product, 0);
     const accounts = await hre.ethers.getSigners();

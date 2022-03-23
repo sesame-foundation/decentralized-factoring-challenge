@@ -6,6 +6,7 @@ import "./BigNumber.sol";
 
 contract MyContract {
     mapping(bytes32 => uint256) public claims;
+    address payable public winner;
     BigNumber.instance public product;
     uint256 public withdrawlDelay;
     event ChallengeSolved();
@@ -50,6 +51,7 @@ contract MyContract {
             "Invalid factors"
         );
 
+        winner = claimant;
         emit ChallengeSolved();
 
         (bool sent, bytes memory data) = claimant.call{
