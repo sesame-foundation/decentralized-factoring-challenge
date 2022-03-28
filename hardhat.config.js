@@ -6,4 +6,9 @@ require('solidity-coverage');
  */
 module.exports = {
   solidity: "0.7.3",
+  networks: {
+    hardhat: {
+      initialBaseFeePerGas: 0,
+    }
+  }
 };
