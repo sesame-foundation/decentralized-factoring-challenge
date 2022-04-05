@@ -1,3 +1,4 @@
+require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
 require('solidity-coverage');
 require('dotenv').config();
@@ -21,5 +22,8 @@ module.exports = {
     hardhat: {
       initialBaseFeePerGas: 0,
     }
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY
   }
 };
