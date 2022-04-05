@@ -26,6 +26,7 @@
   "dependencies": {
     "bn.js": "^5.2.0",
     "chai-as-promised": "^7.1.1",
+    "dotenv": "^16.0.0",
     "web3": "^1.6.1"
   }
 }
