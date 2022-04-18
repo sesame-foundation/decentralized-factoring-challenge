@@ -4,7 +4,7 @@ pragma solidity >=0.7.0 <0.9.0;
 
 import "./BigNumber.sol";
 
-contract MyContract {
+contract FactoringChallenge {
     mapping(bytes32 => uint256) public claims;
     address payable public winner;
     BigNumber.instance public product;

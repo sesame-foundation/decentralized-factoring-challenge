@@ -19,7 +19,7 @@ function generateClaim(address, factor1, factor2) {
 }
 
 async function getContract(product, withdrawlDelay) {
-  let MyContract = await ethers.getContractFactory("MyContract");
+  let MyContract = await ethers.getContractFactory("FactoringChallenge");
   let myContract = await MyContract.deploy(
     encodeInteger(product),
     withdrawlDelay
