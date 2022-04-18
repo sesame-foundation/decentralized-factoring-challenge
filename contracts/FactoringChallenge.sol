@@ -41,6 +41,15 @@ contract FactoringChallenge {
         factor2.bitlen = BigNumber.get_bit_length(_factor2);
         factor2.neg = false;
 
+        BigNumber.instance memory one;
+        one.val = new bytes(32);
+        one.val[31] = 0x01;
+        one.bitlen = BigNumber.get_bit_length(one.val);
+        one.neg = false;
+
+        require(BigNumber.cmp(factor1, one, true) != 0, "Trivial factors");
+        require(BigNumber.cmp(factor2, one, true) != 0, "Trivial factors");
+
         bytes32 hash = keccak256(abi.encode(msg.sender, _factor1, _factor2));
         uint256 claimBlockNumber = claims[hash];
         require(claimBlockNumber > 0, "Claim not found");
