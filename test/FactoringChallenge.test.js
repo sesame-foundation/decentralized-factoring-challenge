@@ -3,7 +3,11 @@ chai.use(require("chai-as-promised"));
 var expect = chai.expect;
 const provider = waffle.provider;
 const bn = require("bn.js");
-const { encodeInteger } = require("../utils.js");
+const {
+  encodeInteger,
+  encodeIntegerImproper,
+  encodeIntegerExtraPadding,
+} = require("../utils.js");
 
 const product = 15;
 const factor1 = 3;
@@ -14,6 +18,26 @@ function generateClaim(address, factor1, factor2) {
   let encoded = ethers.utils.defaultAbiCoder.encode(
     ["address", "bytes", "bytes"],
     [address, encodeInteger(factor1), encodeInteger(factor2)]
+  );
+  return ethers.utils.keccak256(encoded, { encoding: "hex" });
+}
+
+function generateClaimImproper(address, factor1, factor2) {
+  let encoded = ethers.utils.defaultAbiCoder.encode(
+    ["address", "bytes", "bytes"],
+    [address, encodeIntegerImproper(factor1), encodeIntegerImproper(factor2)]
+  );
+  return ethers.utils.keccak256(encoded, { encoding: "hex" });
+}
+
+function generateClaimExtraPadding(address, factor1, factor2) {
+  let encoded = ethers.utils.defaultAbiCoder.encode(
+    ["address", "bytes", "bytes"],
+    [
+      address,
+      encodeIntegerExtraPadding(factor1),
+      encodeIntegerExtraPadding(factor2),
+    ]
   );
   return ethers.utils.keccak256(encoded, { encoding: "hex" });
 }
@@ -99,6 +123,37 @@ describe("MyContract", () => {
         myContract.withdraw(encodeInteger(product), encodeInteger(1), {
           from: accounts[0].address,
         })
+      ).to.be.rejectedWith(Error);
+    });
+
+    it("should not allow withdrawl of funds with an improperly encoded factor", async () => {
+      await myContract.submitClaim(
+        generateClaimImproper(accounts[0].address, factor1, factor2)
+      );
+
+      await expect(
+        myContract.withdraw(
+          encodeIntegerImproper(factor1),
+          encodeInteger(factor2),
+          {
+            from: accounts[0].address,
+          }
+        )
+      ).to.be.rejectedWith(Error);
+    });
+
+    it("should not allow withdrawl of funds with a claim with trivial factors with extra padding", async () => {
+      await myContract.submitClaim(
+        generateClaimExtraPadding(accounts[0].address, product, 1)
+      );
+      await expect(
+        myContract.withdraw(
+          encodeIntegerExtraPadding(product),
+          encodeIntegerExtraPadding(1),
+          {
+            from: accounts[0].address,
+          }
+        )
       ).to.be.rejectedWith(Error);
     });
 
