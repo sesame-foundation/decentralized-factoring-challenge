@@ -8,7 +8,7 @@ const { encodeInteger } = require("../utils.js");
 const product = 15;
 const factor1 = 3;
 const factor2 = 5;
-const accountZero = '0x0000000000000000000000000000000000000000';
+const accountZero = "0x0000000000000000000000000000000000000000";
 
 function generateClaim(address, factor1, factor2) {
   let encoded = ethers.utils.defaultAbiCoder.encode(
@@ -74,13 +74,29 @@ describe("MyContract", () => {
       ).to.be.rejectedWith(Error);
     });
 
-    it("should not allow withdrawl of funds with an invalid claim", async () => {
+    it("should not allow withdrawl of funds with a claim with incorrect factors", async () => {
       await myContract.submitClaim(
         generateClaim(accounts[0].address, factor1 + 1, factor2)
       );
 
       await expect(
-        myContract.withdraw(encodeInteger(factor1 + 1), encodeInteger(factor2), {
+        myContract.withdraw(
+          encodeInteger(factor1 + 1),
+          encodeInteger(factor2),
+          {
+            from: accounts[0].address,
+          }
+        )
+      ).to.be.rejectedWith(Error);
+    });
+
+    it("should not allow withdrawl of funds with a claim with trivial factors", async () => {
+      await myContract.submitClaim(
+        generateClaim(accounts[0].address, product, 1)
+      );
+
+      await expect(
+        myContract.withdraw(encodeInteger(product), encodeInteger(1), {
           from: accounts[0].address,
         })
       ).to.be.rejectedWith(Error);
@@ -121,9 +137,13 @@ describe("MyContract", () => {
         let startingBalance = ethers.BigNumber.from(
           await provider.getBalance(accounts[0].address)
         );
-        await myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2), {
-          gasPrice: 0,
-        });
+        await myContract.withdraw(
+          encodeInteger(factor1),
+          encodeInteger(factor2),
+          {
+            gasPrice: 0,
+          }
+        );
         expect(await provider.getBalance(accounts[0].address)).to.equal(
           startingBalance.add(value)
         );
@@ -154,10 +174,14 @@ describe("MyContract", () => {
       });
 
       it("should allow only one withdrawal", async () => {
-        await myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2), {
-          from: accounts[0].address,
-          gasPrice: 0,
-        });
+        await myContract.withdraw(
+          encodeInteger(factor1),
+          encodeInteger(factor2),
+          {
+            from: accounts[0].address,
+            gasPrice: 0,
+          }
+        );
         await expect(
           myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2), {
             from: accounts[1].address,
@@ -187,16 +211,14 @@ describe("MyContract", () => {
 
     it("should not accept donations", async () => {
       const value = 100;
-      await expect(
-        myContract.donate({ value: value })
-      ).to.be.rejectedWith(Error);
+      await expect(myContract.donate({ value: value })).to.be.rejectedWith(
+        Error
+      );
     });
 
     it("should not accept claims", async () => {
       let claim = generateClaim(accounts[0].address, factor1, factor2);
-      await expect(
-        myContract.submitClaim(claim)
-      ).to.be.rejectedWith(Error);
+      await expect(myContract.submitClaim(claim)).to.be.rejectedWith(Error);
     });
   });
 });
