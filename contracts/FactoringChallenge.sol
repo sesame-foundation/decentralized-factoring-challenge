@@ -31,21 +31,11 @@ contract FactoringChallenge {
         require(winner == address(0), "Challenge has been solved");
         address payable claimant = payable(msg.sender);
 
-        BigNumber.instance memory factor1;
-        factor1.val = _factor1;
-        factor1.bitlen = BigNumber.get_bit_length(_factor1);
-        factor1.neg = false;
-
-        BigNumber.instance memory factor2;
-        factor2.val = _factor2;
-        factor2.bitlen = BigNumber.get_bit_length(_factor2);
-        factor2.neg = false;
-
-        BigNumber.instance memory one;
-        one.val = new bytes(32);
-        one.val[31] = 0x01;
-        one.bitlen = BigNumber.get_bit_length(one.val);
-        one.neg = false;
+        BigNumber.instance memory factor1 = BigNumber._new(_factor1, false, false);
+        BigNumber.instance memory factor2 = BigNumber._new(_factor2, false, false);
+        bytes memory _one = new bytes(32);
+        _one[31] = 0x01;
+        BigNumber.instance memory one = BigNumber._new(_one, false, false);
 
         require(BigNumber.cmp(factor1, one, true) != 0, "Trivial factors");
         require(BigNumber.cmp(factor2, one, true) != 0, "Trivial factors");
