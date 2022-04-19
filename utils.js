@@ -33,6 +33,17 @@ function encodeIntegerExtraPadding(integer) {
   );
 }
 
+
+function generateClaim(address, factor1, factor2) {
+  let encoded = ethers.utils.defaultAbiCoder.encode(
+    ["address", "bytes", "bytes"],
+    [address, factor1, factor2]
+  );
+  return ethers.utils.keccak256(encoded, { encoding: "hex" });
+}
+
+
 exports.encodeInteger = encodeInteger;
 exports.encodeIntegerImproper = encodeIntegerImproper;
 exports.encodeIntegerExtraPadding = encodeIntegerExtraPadding;
+exports.generateClaim = generateClaim;
