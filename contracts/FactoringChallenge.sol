@@ -18,28 +18,33 @@ contract FactoringChallenge {
         withdrawlDelay = _withdrawlDelay;
     }
 
+    function isOne(bytes calldata value) internal pure returns(bool) {
+        for(uint i = 0; i < value.length - 1; i++){
+            if (value[i] != 0x00) {
+                return false;
+            }
+        }
+        return value[value.length-1] == 0x01;
+    }
+
     function donate() external payable {
         require(winner == address(0), "Challenge has been solved");
     }
 
-    function submitClaim(bytes32 _hash) public {
+    function submitClaim(bytes32 _hash) external {
         require(winner == address(0), "Challenge has been solved");
         claims[_hash] = block.number;
     }
 
-    function withdraw(bytes memory _factor1, bytes memory _factor2) public {
+    function withdraw(bytes calldata _factor1, bytes calldata _factor2) external {
         require(winner == address(0), "Challenge has been solved");
         address payable claimant = payable(msg.sender);
 
-        BigNumber.instance memory factor1;
-        factor1.val = _factor1;
-        factor1.bitlen = BigNumber.get_bit_length(_factor1);
-        factor1.neg = false;
+        require(!isOne(_factor1), "Trivial factors");
+        require(!isOne(_factor2), "Trivial factors");
 
-        BigNumber.instance memory factor2;
-        factor2.val = _factor2;
-        factor2.bitlen = BigNumber.get_bit_length(_factor2);
-        factor2.neg = false;
+        BigNumber.instance memory factor1 = BigNumber._new(_factor1, false, false);
+        BigNumber.instance memory factor2 = BigNumber._new(_factor2, false, false);
 
         bytes32 hash = keccak256(abi.encode(msg.sender, _factor1, _factor2));
         uint256 claimBlockNumber = claims[hash];
