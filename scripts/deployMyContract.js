@@ -7,13 +7,13 @@ async function main() {
   console.log("Deploying contract with the account:", deployer.address);
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  const MyContract = await ethers.getContractFactory("MyContract");
+  const MyContract = await ethers.getContractFactory("FactoringChallenge");
   const myContract = await MyContract.deploy(
     encodeInteger(product),
     withdrawlDelay
   );
 
-  console.log("My Contract deployed to:", myContract.address);
+  console.log("Factoring Challenge deployed to:", myContract.address);
 }
 
 main()
