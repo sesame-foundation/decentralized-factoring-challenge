@@ -18,13 +18,27 @@ contract FactoringChallenge {
         withdrawlDelay = _withdrawlDelay;
     }
 
-    function isOne(bytes calldata value) internal pure returns(bool) {
-        for(uint i = 0; i < value.length - 1; i++){
+    function isOne(bytes calldata value) internal pure returns (bool) {
+        for (uint256 i = 0; i < value.length - 1; i++) {
             if (value[i] != 0x00) {
                 return false;
             }
         }
-        return value[value.length-1] == 0x01;
+        return value[value.length - 1] == 0x01;
+    }
+
+    function hasExcessPadding(bytes calldata value)
+        internal
+        pure
+        returns (bool)
+    {
+        require(value.length >= 32, "Value has fewer than 32 bytes");
+        for (uint256 i = 0; i < 32; i++) {
+            if (value[i] != 0x00) {
+                return false;
+            }
+        }
+        return true;
     }
 
     function donate() external payable {
@@ -36,15 +50,28 @@ contract FactoringChallenge {
         claims[_hash] = block.number;
     }
 
-    function withdraw(bytes calldata _factor1, bytes calldata _factor2) external {
+    function withdraw(bytes calldata _factor1, bytes calldata _factor2)
+        external
+    {
         require(winner == address(0), "Challenge has been solved");
         address payable claimant = payable(msg.sender);
 
+
+        require(!hasExcessPadding(_factor1), "Excess padding");
+        require(!hasExcessPadding(_factor2), "Excess padding");
         require(!isOne(_factor1), "Trivial factors");
         require(!isOne(_factor2), "Trivial factors");
 
-        BigNumber.instance memory factor1 = BigNumber._new(_factor1, false, false);
-        BigNumber.instance memory factor2 = BigNumber._new(_factor2, false, false);
+        BigNumber.instance memory factor1 = BigNumber._new(
+            _factor1,
+            false,
+            false
+        );
+        BigNumber.instance memory factor2 = BigNumber._new(
+            _factor2,
+            false,
+            false
+        );
 
         bytes32 hash = keccak256(abi.encode(msg.sender, _factor1, _factor2));
         uint256 claimBlockNumber = claims[hash];
