@@ -56,7 +56,6 @@ contract FactoringChallenge {
         require(winner == address(0), "Challenge has been solved");
         address payable claimant = payable(msg.sender);
 
-
         require(!hasExcessPadding(_factor1), "Excess padding");
         require(!hasExcessPadding(_factor2), "Excess padding");
         require(!isOne(_factor1), "Trivial factors");
@@ -90,9 +89,7 @@ contract FactoringChallenge {
         winner = claimant;
         emit ChallengeSolved();
 
-        (bool sent, bytes memory data) = claimant.call{
-            value: address(this).balance
-        }("");
+        (bool sent, ) = claimant.call{value: address(this).balance}("");
         require(sent, "Failed to send Ether");
     }
 }
