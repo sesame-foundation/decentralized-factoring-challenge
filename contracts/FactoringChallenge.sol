@@ -50,9 +50,11 @@ contract FactoringChallenge {
         claims[_hash] = block.number;
     }
 
-    function withdraw(bytes calldata _factor1, bytes calldata _factor2)
-        external
-    {
+    function withdraw(
+        bytes calldata _factor1,
+        bytes calldata _factor2,
+        bytes calldata _salt
+    ) external {
         require(winner == address(0), "Challenge has been solved");
         address payable claimant = payable(msg.sender);
 
@@ -72,7 +74,9 @@ contract FactoringChallenge {
             false
         );
 
-        bytes32 hash = keccak256(abi.encode(msg.sender, _factor1, _factor2));
+        bytes32 hash = keccak256(
+            abi.encode(msg.sender, _factor1, _factor2, _salt)
+        );
         uint256 claimBlockNumber = claims[hash];
         require(claimBlockNumber > 0, "Claim not found");
         require(

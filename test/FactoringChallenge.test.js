@@ -14,6 +14,7 @@ const product = 15;
 const factor1 = 3;
 const factor2 = 5;
 const accountZero = "0x0000000000000000000000000000000000000000";
+const salt = "0x1234";
 
 async function getContract(product, withdrawlDelay) {
   let MyContract = await ethers.getContractFactory("FactoringChallenge");
@@ -44,7 +45,8 @@ describe("MyContract", () => {
     let claim = generateClaim(
       accounts[0].address,
       encodeInteger(factor1),
-      encodeInteger(factor2)
+      encodeInteger(factor2),
+      salt
     );
     await myContract.submitClaim(claim);
     expect((await myContract.claims(claim)).gt(0)).to.be.true;
@@ -54,7 +56,8 @@ describe("MyContract", () => {
     let claim = generateClaim(
       accounts[0].address,
       encodeInteger(factor1),
-      encodeInteger(factor2)
+      encodeInteger(factor2),
+      salt
     );
     expect(await myContract.claims(claim)).to.equal(0);
   });
@@ -73,9 +76,14 @@ describe("MyContract", () => {
 
     it("should not allow withdrawl of funds without a claim", async () => {
       await expect(
-        myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2), {
-          from: accounts[0].address,
-        })
+        myContract.withdraw(
+          encodeInteger(factor1),
+          encodeInteger(factor2),
+          salt,
+          {
+            from: accounts[0].address,
+          }
+        )
       ).to.be.rejectedWith(Error);
     });
 
@@ -84,7 +92,8 @@ describe("MyContract", () => {
         generateClaim(
           accounts[0].address,
           encodeInteger(factor1 + 1),
-          encodeInteger(factor2)
+          encodeInteger(factor2),
+          salt
         )
       );
 
@@ -92,6 +101,7 @@ describe("MyContract", () => {
         myContract.withdraw(
           encodeInteger(factor1 + 1),
           encodeInteger(factor2),
+          salt,
           {
             from: accounts[0].address,
           }
@@ -104,7 +114,8 @@ describe("MyContract", () => {
         generateClaim(
           accounts[0].address,
           encodeInteger(product),
-          encodeInteger(1)
+          encodeInteger(1),
+          salt
         )
       );
 
@@ -120,7 +131,8 @@ describe("MyContract", () => {
         generateClaim(
           accounts[0].address,
           encodeIntegerImproper(factor1),
-          encodeInteger(factor2)
+          encodeInteger(factor2),
+          salt
         )
       );
 
@@ -128,6 +140,7 @@ describe("MyContract", () => {
         myContract.withdraw(
           encodeIntegerImproper(factor1),
           encodeInteger(factor2),
+          salt,
           {
             from: accounts[0].address,
           }
@@ -140,13 +153,15 @@ describe("MyContract", () => {
         generateClaim(
           accounts[0].address,
           encodeInteger(product),
-          encodeIntegerExtraPadding(1)
+          encodeIntegerExtraPadding(1),
+          salt
         )
       );
       await expect(
         myContract.withdraw(
           encodeInteger(product),
           encodeIntegerExtraPadding(1),
+          salt,
           {
             from: accounts[0].address,
           }
@@ -160,7 +175,8 @@ describe("MyContract", () => {
           generateClaim(
             accounts[0].address,
             encodeInteger(factor1),
-            encodeInteger(factor2)
+            encodeInteger(factor2),
+            salt
           )
         );
       });
@@ -180,13 +196,15 @@ describe("MyContract", () => {
           generateClaim(
             accounts[1].address,
             encodeInteger(factor1),
-            encodeInteger(factor2)
+            encodeInteger(factor2),
+            salt
           )
         );
         let claim = generateClaim(
           accounts[1].address,
           encodeInteger(factor1),
-          encodeInteger(factor2)
+          encodeInteger(factor2),
+          salt
         );
         await myContract.submitClaim(claim);
         expect((await myContract.claims(claim)).gt(0)).to.be.true;
@@ -199,7 +217,8 @@ describe("MyContract", () => {
           generateClaim(
             accounts[0].address,
             encodeInteger(factor1),
-            encodeInteger(factor2)
+            encodeInteger(factor2),
+            salt
           )
         );
         let startingBalance = ethers.BigNumber.from(
@@ -208,6 +227,7 @@ describe("MyContract", () => {
         await myContract.withdraw(
           encodeInteger(factor1),
           encodeInteger(factor2),
+          salt,
           {
             gasPrice: 0,
           }
@@ -223,14 +243,44 @@ describe("MyContract", () => {
           generateClaim(
             accounts[0].address,
             encodeInteger(factor1),
-            encodeInteger(factor2)
+            encodeInteger(factor2),
+            salt
           )
         );
 
         await expect(
-          myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2), {
-            from: accounts[0].address,
-          })
+          myContract.withdraw(
+            encodeInteger(factor1),
+            encodeInteger(factor2),
+            salt,
+            {
+              from: accounts[0].address,
+            }
+          )
+        ).to.be.rejectedWith(Error);
+      });
+
+      it("should not allow withdrawl of funds with the incorrect salt", async () => {
+        const value = ethers.BigNumber.from(100);
+        await myContract.donate({ value: value });
+        await myContract.submitClaim(
+          generateClaim(
+            accounts[0].address,
+            encodeInteger(factor1),
+            encodeInteger(factor2),
+            salt
+          )
+        );
+
+        await expect(
+          myContract.withdraw(
+            encodeInteger(factor1),
+            encodeInteger(factor2),
+            "0x1235",
+            {
+              from: accounts[0].address,
+            }
+          )
         ).to.be.rejectedWith(Error);
       });
     });
@@ -241,14 +291,16 @@ describe("MyContract", () => {
           generateClaim(
             accounts[0].address,
             encodeInteger(factor1),
-            encodeInteger(factor2)
+            encodeInteger(factor2),
+            salt
           )
         );
         await myContract.submitClaim(
           generateClaim(
             accounts[1].address,
             encodeInteger(factor1),
-            encodeInteger(factor2)
+            encodeInteger(factor2),
+            salt
           )
         );
       });
@@ -257,16 +309,22 @@ describe("MyContract", () => {
         await myContract.withdraw(
           encodeInteger(factor1),
           encodeInteger(factor2),
+          salt,
           {
             from: accounts[0].address,
             gasPrice: 0,
           }
         );
         await expect(
-          myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2), {
-            from: accounts[1].address,
-            gasPrice: 0,
-          })
+          myContract.withdraw(
+            encodeInteger(factor1),
+            encodeInteger(factor2),
+            salt,
+            {
+              from: accounts[1].address,
+              gasPrice: 0,
+            }
+          )
         ).to.be.rejectedWith(Error);
       });
     });
@@ -278,10 +336,15 @@ describe("MyContract", () => {
         generateClaim(
           accounts[0].address,
           encodeInteger(factor1),
-          encodeInteger(factor2)
+          encodeInteger(factor2),
+          salt
         )
       );
-      await myContract.withdraw(encodeInteger(factor1), encodeInteger(factor2));
+      await myContract.withdraw(
+        encodeInteger(factor1),
+        encodeInteger(factor2),
+        salt
+      );
     });
 
     it("should have a winner", async () => {
@@ -304,7 +367,8 @@ describe("MyContract", () => {
       let claim = generateClaim(
         accounts[0].address,
         encodeInteger(factor1),
-        encodeInteger(factor2)
+        encodeInteger(factor2),
+        salt
       );
       await expect(myContract.submitClaim(claim)).to.be.rejectedWith(Error);
     });

@@ -34,10 +34,10 @@ function encodeIntegerExtraPadding(integer) {
 }
 
 
-function generateClaim(address, factor1, factor2) {
+function generateClaim(address, factor1, factor2, salt) {
   let encoded = ethers.utils.defaultAbiCoder.encode(
-    ["address", "bytes", "bytes"],
-    [address, factor1, factor2]
+    ["address", "bytes", "bytes", "bytes"],
+    [address, factor1, factor2, salt]
   );
   return ethers.utils.keccak256(encoded, { encoding: "hex" });
 }
