@@ -20,6 +20,7 @@ module.exports = {
       url: process.env.ROPSTEN_URL,
     },
     hardhat: {
+      chainId: 1337,
       initialBaseFeePerGas: 0,
     }
   },
