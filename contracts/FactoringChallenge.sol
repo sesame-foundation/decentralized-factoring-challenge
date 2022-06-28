@@ -9,6 +9,7 @@ contract FactoringChallenge {
     address payable public winner;
     BigNumber.instance public product;
     uint256 public withdrawlDelay;
+    event Donation(address donor, uint256 amount);
     event ChallengeSolved();
 
     constructor(bytes memory _product, uint256 _withdrawlDelay) {
@@ -43,6 +44,7 @@ contract FactoringChallenge {
 
     function donate() external payable {
         require(winner == address(0), "Challenge has been solved");
+        emit Donation(msg.sender, msg.value);
     }
 
     function submitClaim(bytes32 _hash) external {

@@ -26,7 +26,7 @@ async function getContract(product, withdrawlDelay) {
   return myContract;
 }
 
-describe("MyContract", () => {
+describe("FactoringChallenge", () => {
   let myContract;
   let accounts;
 
@@ -68,10 +68,22 @@ describe("MyContract", () => {
       expect((await myContract.queryFilter(eventFilter)).length).to.equal(0);
     });
 
-    it("should accept donations", async () => {
-      const value = 100;
-      await myContract.donate({ value: value });
-      expect(await provider.getBalance(myContract.address)).to.equal(value);
+    describe("donate", () => {
+      it("should accept donations", async () => {
+        const value = 100;
+        await myContract.donate({ value: value });
+        expect(await provider.getBalance(myContract.address)).to.equal(value);
+      });
+
+      it("should emit a Donation event", async () => {
+        const value = 100;
+        await myContract.donate({ value: value });
+        const logs = await provider.getLogs({});
+        const event = myContract.interface.parseLog(logs[0]);
+        expect(event.name).to.eq("Donation");
+        expect(event.args[0]).to.eq(accounts[0].address);
+        expect(event.args[1]).to.eq(value);
+      });
     });
 
     it("should not allow withdrawl of funds without a claim", async () => {
