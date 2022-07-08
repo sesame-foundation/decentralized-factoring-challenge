@@ -1,7 +1,6 @@
-const bn = require("bn.js");
 const { encodeInteger } = require("../utils.js");
 
-let product = new bn("15");
+let product = "15";
 let withdrawlDelay = 2;
 
 async function main() {
