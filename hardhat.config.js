@@ -1,7 +1,7 @@
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
-require('solidity-coverage');
-require('dotenv').config();
+require("solidity-coverage");
+require("dotenv").config();
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -14,17 +14,17 @@ module.exports = {
       chainId: 1,
       url: process.env.MAINNET_URL,
     },
-    ropsten: {
+    goerli: {
       accounts: [process.env.PRIVATE_KEY],
-      chainId: 3,
-      url: process.env.ROPSTEN_URL,
+      chainId: 5,
+      url: process.env.GOERLI_URL,
     },
     hardhat: {
       chainId: 1337,
       initialBaseFeePerGas: 0,
-    }
+    },
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY
-  }
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
 };

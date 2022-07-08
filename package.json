@@ -8,7 +8,7 @@
     "test:light": "hardhat test",
     "test": "hardhat coverage --show-stack-traces",
     "deploy:local": "hardhat run --network localhost scripts/deployMyContract.js",
-    "deploy:ropsten": "hardhat run --network ropsten scripts/deployMyContract.js",
+    "deploy:goerli": "hardhat run --network goerli scripts/deployMyContract.js",
     "deploy:mainnet": "hardhat run --network mainnet scripts/deployMyContract.js",
     "call:local": "node scripts/callMyContract.js",
     "local-testnet": "hardhat node"
